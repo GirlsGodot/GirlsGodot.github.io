@@ -1,7 +1,9 @@
 [{
     "name": "roam1n",
-    "repo": "https://github.com/roam1n/billiard_doc"
+    "repo": "https://github.com/roam1n/billiard_doc",
+    "zip_url": "https://github.com/roam1n/billiard_doc/archive/refs/heads/master.zip"
 }, {
     "name": "zhufree",
-    "repo": "https://github.com/zhufree/zhufree"
+    "repo": "https://github.com/zhufree/zhufree",
+    "zip_url": "https://github.com/zhufree/zhufree/archive/refs/heads/main.zip"
 }]

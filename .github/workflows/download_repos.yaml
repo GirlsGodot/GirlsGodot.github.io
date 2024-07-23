@@ -1,0 +1,60 @@
+name: Download and Extract Repos
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+  # schedule:
+  #   - cron: '*/10 * * * *'
+
+jobs:
+  pull-repos:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup jq
+      run: sudo apt-get install -y jq
+
+    - name: Create base directory
+      run: mkdir -p src/content
+
+    - name: Read members.json and download repos
+      run: |
+        repos=$(cat members.json)
+        for row in $(echo "${repos}" | jq -r '.[] | @base64'); do
+          _jq() {
+            echo ${row} | base64 --decode | jq -r ${1}
+          }
+
+          repo_url=$(_jq '.zip_url')
+          directory=$(_jq '.name')
+
+          echo "Downloading $repo_url"
+          curl -L $repo_url -o src/content/repo.zip
+
+          echo "Removing old directory $directory"
+          rm -rf $directory
+
+          echo "Creating directory $directory"
+          mkdir -p $directory
+
+          echo "Unzipping repo.zip to $directory"
+          unzip -o src/content/repo.zip -d $directory
+
+          echo "Cleaning up"
+          rm src/content/repo.zip
+        done
+
+    - name: Commit and push changes
+      run: |
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+        git add .
+        git commit -m "Update downloaded repositories"
+        git push
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
