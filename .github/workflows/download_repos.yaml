@@ -1,10 +1,10 @@
 name: Download and Extract Repos
 
 on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+  # push:
+  #   branches: [ "main" ]
+  # pull_request:
+  #   branches: [ "main" ]
   workflow_dispatch:
   # schedule:
   #   - cron: '*/10 * * * *'
@@ -31,22 +31,29 @@ jobs:
           }
 
           repo_url=$(_jq '.zip_url')
-          directory=$(_jq '.name')
+          name=$(_jq '.name')
+          directory="src/content/$name"
 
           echo "Downloading $repo_url"
           curl -L $repo_url -o src/content/repo.zip
 
-          echo "Removing old directory $directory"
+          echo "Removing old directory $name"
           rm -rf $directory
 
-          echo "Creating directory $directory"
+          echo "Creating directory $name"
           mkdir -p $directory
 
           echo "Unzipping repo.zip to $directory"
-          unzip -o src/content/repo.zip -d $directory
+          unzip -o -q src/content/repo.zip -d $directory
+
+          echo "Finding and moving contents to $directory"
+          extracted_dir=$(find $directory -mindepth 1 -maxdepth 1 -type d)
+          mv $extracted_dir/* $directory/
 
           echo "Cleaning up"
           rm src/content/repo.zip
+          rm -rf $extracted_dir
+
         done
 
     - name: Commit and push changes
